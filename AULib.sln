@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AULib", "AULib.csproj", "{582003F9-EC99-E9DC-B490-209D395DE867}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DOTween.Modules", "DOTween.Modules.csproj", "{5F3B6757-1ED8-8923-EB59-8146801C158C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AULib.Editor", "AULib.Editor.csproj", "{07A4CFA4-9D14-67DB-1B40-7CAA087D5CCD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{582003F9-EC99-E9DC-B490-209D395DE867}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{582003F9-EC99-E9DC-B490-209D395DE867}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{582003F9-EC99-E9DC-B490-209D395DE867}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{582003F9-EC99-E9DC-B490-209D395DE867}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F3B6757-1ED8-8923-EB59-8146801C158C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F3B6757-1ED8-8923-EB59-8146801C158C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F3B6757-1ED8-8923-EB59-8146801C158C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F3B6757-1ED8-8923-EB59-8146801C158C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07A4CFA4-9D14-67DB-1B40-7CAA087D5CCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07A4CFA4-9D14-67DB-1B40-7CAA087D5CCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07A4CFA4-9D14-67DB-1B40-7CAA087D5CCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07A4CFA4-9D14-67DB-1B40-7CAA087D5CCD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
