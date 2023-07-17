@@ -11,7 +11,7 @@ namespace AULib
     /// <summary>
     /// Toast ¸Þ¼¼Áö
     /// </summary>
-    public class ToastMessage : BaseBehaviour, IPointerDownHandler
+    public class ToastMessage : BaseBehaviour, IPointerDownHandler, ICommonUIElement
     {
 
 

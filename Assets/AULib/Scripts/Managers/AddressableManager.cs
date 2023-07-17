@@ -21,7 +21,7 @@ namespace AULib
 
 
         //사용한 핸들 관리용 Dic 
-        private static Dictionary<string, AsyncOperationHandle> loadedHandles = new Dictionary<string, AsyncOperationHandle>();
+        private static Dictionary<string, AsyncOperationHandle> loadedHandles = new();
 
         /// <summary>
         /// 초기화 처리
@@ -37,6 +37,7 @@ namespace AULib
                 Addressables.Release(async);
             };
 
+            
         }
 
         /// <summary>
@@ -133,11 +134,11 @@ namespace AULib
         /// <param name="assetPath"></param>
         /// <param name="OnLoaded"></param>
         /// <returns></returns>
-        public static AsyncOperationHandle<TObject> LoadAssetAsync<TObject>(string bundleName, string assetPath, Action<AsyncOperationHandle<TObject>> OnLoaded = null)
-        {
-            string strBundleName = GetAddress(bundleName, assetPath);
-            return LoadAssetAsync<TObject>(strBundleName, OnLoaded);
-        }
+        //public static AsyncOperationHandle<TObject> LoadAssetAsync<TObject>( string assetPath, Action<AsyncOperationHandle<TObject>> OnLoaded = null)
+        //{
+        //    // string strBundleName = GetAddress(bundleName, assetPath);
+        //    return LoadAssetAsync<TObject>(assetPath, OnLoaded);
+        //}
 
         public static AsyncOperationHandle<TObject> LoadAssetAsync<TObject>(string address, Action<AsyncOperationHandle<TObject>> OnLoaded = null)
         {
@@ -164,11 +165,11 @@ namespace AULib
             return handle;
         }
 
-        public static TObject LoadAssetSync<TObject>(string bundleName, string assetPath)
-        {
-            string strBundleName = GetAddress(bundleName, assetPath);
-            return LoadAssetSync<TObject>(strBundleName);
-        }
+        //public static TObject LoadAssetSync<TObject>(string assetPath)
+        //{
+        //    string strBundleName = GetAddress(bundleName, assetPath);
+        //    return LoadAssetSync<TObject>(strBundleName);
+        //}
 
 
 
@@ -183,8 +184,10 @@ namespace AULib
         public static AsyncOperationHandle<IList<TObject>> LoadAssetsAsync<TObject>(List<string> addresses, Action<AsyncOperationHandle<IList<TObject>>> OnLoaded = null)
         {
             AsyncOperationHandle<IList<TObject>> handles = default(AsyncOperationHandle<IList<TObject>>);
-
-
+            if (addresses.Count == 0)
+            {
+                return handles;
+            }
             //애셋 로드
             handles = Addressables.LoadAssetsAsync<TObject>(addresses, obj => { }, Addressables.MergeMode.Union/*, releaseDependenciesOnFailure :true  - 여러 asset 중 하나라도 실패하면 모두 실패 처리*/  );
 
@@ -210,7 +213,9 @@ namespace AULib
             }
             else
             {
-                handle = Addressables.LoadAssetAsync<TObject>(address);               
+                handle = Addressables.LoadAssetAsync<TObject>(address);
+                loadedHandles.Add(address, handle);
+
                 handle.WaitForCompletion();
 
                 if (handle.Status == AsyncOperationStatus.Failed)
@@ -221,13 +226,16 @@ namespace AULib
 
             }
 
-            if (!loadedHandles.ContainsKey(address))
+            if (handle.IsValid())
             {
-                loadedHandles.Add(address, handle);
+                return handle.Result;
+            }
+            else
+            {
+                return default(TObject);
             }
 
-
-            return handle.Result;
+            
         }
 
 
@@ -236,6 +244,7 @@ namespace AULib
         {
             Addressables.DownloadDependenciesAsync(keys, Addressables.MergeMode.Union, true).Completed += op =>
             {
+                SpriteAtlasInit();
                 OnDownload?.Invoke(op.Status == AsyncOperationStatus.Succeeded);
             };
         }
@@ -356,7 +365,8 @@ namespace AULib
 
                 if (handle.IsDone)
                 {
-                    OnLoaded(handle);
+                    handle.Completed -= OnLoaded;
+                    OnLoaded?.Invoke(handle);
                 }
                 else
                 {
@@ -397,7 +407,7 @@ namespace AULib
 
                 if (handle.IsDone)
                 {
-                    OnLoaded(handle);
+                    OnLoaded?.Invoke(handle);
                 }
                 else
                 {
@@ -451,13 +461,13 @@ namespace AULib
         /// <param name="assetPath"></param>
         /// <param name="OnLoaded"></param>
         /// <returns></returns>
-        public static AsyncOperationHandle<GameObject> InstantiateAsync(string bundleName, string assetPath, Action<AsyncOperationHandle<GameObject>> OnLoaded = null, Transform parent = null)
-        {
+        //public static AsyncOperationHandle<GameObject> InstantiateAsync(string assetPath, Action<AsyncOperationHandle<GameObject>> OnLoaded = null, Transform parent = null)
+        //{
 
-            string strBundleName = GetAddress(bundleName, assetPath);
+        //    string strBundleName = GetAddress(bundleName, assetPath);
 
-            return InstantiateAsync(strBundleName, OnLoaded, parent);
-        }
+        //    return InstantiateAsync(strBundleName, OnLoaded, parent);
+        //}
 
 
         public static AsyncOperationHandle<GameObject> InstantiateAsync(string address, Action<AsyncOperationHandle<GameObject>> OnLoaded = null, Transform parent = null)
@@ -546,18 +556,19 @@ namespace AULib
 
 
 
-        public static string GetAddress(string bundleName, string assetPath)
+        public static string GetAddress(string assetPath)
         {
-            StringBuilder strBuilder = new StringBuilder();
-            //Assets
-            strBuilder.Append("Assets");
-            strBuilder.Append("/");
-            strBuilder.Append(bundleName);
-            strBuilder.Append("/");
-            strBuilder.Append(assetPath);
-            string strBundleName = strBuilder.ToString();
+            //StringBuilder strBuilder = new StringBuilder();
+            ////Assets
+            //strBuilder.Append("Assets");
+            //strBuilder.Append("/");
+            //strBuilder.Append(bundleName);
+            //strBuilder.Append("/");
+            //strBuilder.Append(assetPath);
+            //string strBundleName = strBuilder.ToString();
 
-            return strBundleName;
+            //return strBundleName;
+            return "";
         }
 
     }

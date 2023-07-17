@@ -8,7 +8,7 @@ using System;
 
 namespace AULib
 {
-    public class WebLoading : BaseBehaviour
+    public class WebLoading : BaseBehaviour, ICommonUIElement
     {
         private const float UPDATE_TIME = 0.1f;
 
@@ -41,13 +41,10 @@ namespace AULib
 
             keepClear = false;
             requestMessage = true;
-#if UNITASK
             WebRequestAsync().Forget();
-#else
-        StartCoroutine( "WebRequestCoroutine" );
-#endif
 
         }
+
         public void WebResponse()
         {
             gameObject.SetActive(false);
@@ -55,7 +52,7 @@ namespace AULib
             requestMessage = false;
         }
 
-#if UNITASK
+
         async UniTaskVoid WebRequestAsync()
         {
             float elapsed = 0.0f;
@@ -71,22 +68,7 @@ namespace AULib
                 elapsed += UPDATE_TIME;
             }
         }
-#else
-    IEnumerator WebRequestCoroutine()
-    {
-        float elapsed = 0.0f;
 
-        while ( requestMessage == true && keepClear )
-        {
-            yield return new WaitForSeconds( UPDATE_TIME );
-            img.transform.Rotate( new Vector3( 0 , 0 , -0.1f ) );
-
-            if ( elapsed > keepTime )
-                keepClear = true;
-            elapsed += UPDATE_TIME;
-        }
-    }
-#endif
 
 
         public bool IsLoading() { return !keepClear; }

@@ -12,10 +12,12 @@ namespace AULib
 {
     public class LoadingSceneController : MonoSingletonBase<LoadingSceneController>, IBackable
     {
-        public static string nextScene;
-        public static string currentScene => SceneManager.GetActiveScene().name;
+        public static string prevScene;
 
-        [SerializeField] string loadingSceneName;
+        public static string nextScene;
+        public static string currentSceneName => SceneManager.GetActiveScene().name;
+
+        //[SerializeField] string loadingSceneName;
         [SerializeField] Slider progressBar;
         [SerializeField] TextMeshProUGUI textTip;
         [SerializeField] AudioListener audioListener;
@@ -46,7 +48,10 @@ namespace AULib
         {
             //ALPlayerData.i.prevSceneID = SceneManager.GetActiveScene().buildIndex;
             nextScene = scene;
-            SceneManager.LoadScene(i.loadingSceneName);
+            UIManager.i.CameraFadeIn(
+                () => { SceneManager.LoadScene( AULibSetting.LOADING_SCENE_NAME ); }
+            );
+            
         }
 
         public static void SceneLoadCallback(BaseSceneController sceneController)
@@ -54,7 +59,7 @@ namespace AULib
             if (!IsValid())
             {
                 //씬에서 바로 실행 시 처리
-                sceneController.InitializeFinished();
+                sceneController.InitializeFinished();                
             }
             else
             {
@@ -131,11 +136,15 @@ namespace AULib
                 await UniTask.NextFrame();
             }
 
-            await SceneManager.UnloadSceneAsync(i.loadingSceneName);
-            sceneController.InitializeFinished();
+            await SceneManager.UnloadSceneAsync(AULibSetting.LOADING_SCENE_NAME);            
+            InitializeFinished(sceneController);
         }
 
+        protected virtual void InitializeFinished(BaseSceneController sceneController)
+        {
+            sceneController.InitializeFinished();
 
+        }
 
 
 

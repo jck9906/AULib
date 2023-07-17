@@ -52,7 +52,7 @@ namespace AULib
             if (backables.Count == 0)
             {
                 OnBackInputWhenEmpty?.Invoke();
-              //  CommonUIController.i.SetMessage(ALDataLoader.i.GetLocalizedUIText("COMMON_MSG_TITLE_NOTICE"), ALDataLoader.i.GetLocalizedUIText("COMMON_MSG_ASK_QUIT_GAME"), MessageBox.ButtonTypeParam.GetDefaultParamTwoButton(),
+              //  UIManager.i.Common.SetMessage(ALDataLoader.i.GetLocalizedUIText("COMMON_MSG_TITLE_NOTICE"), ALDataLoader.i.GetLocalizedUIText("COMMON_MSG_ASK_QUIT_GAME"), MessageBox.ButtonTypeParam.GetDefaultParamTwoButton(),
               //  okCallback: () =>
               // {
               //     Application.Quit();

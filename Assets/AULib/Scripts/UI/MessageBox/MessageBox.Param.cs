@@ -53,7 +53,7 @@ namespace AULib
             {
                 ButtonTypeParam defaultParam = new ButtonTypeParam();
                 defaultParam.mbType = eMB_TYPE.MB_OK_CANCEL;
-                defaultParam.mbOrderType = eMB_ORDER_TYPE.OK_CANCEL;
+                defaultParam.mbOrderType = eMB_ORDER_TYPE.CANCEL_OK;
                 defaultParam.confirm = defaultConfirmBtnMsg/*ALDataLoader.i.GetLocalizedUIText("COMMON_MSG_BTN_CONFIRM")*/;
                 defaultParam.cancel = defaultCancelBtnMsg/*ALDataLoader.i.GetLocalizedUIText("COMMON_MSG_BTN_CANCEL")*/;
 

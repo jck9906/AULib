@@ -25,6 +25,8 @@ namespace AULib
     {
 
         [SerializeField] protected Button btnExit;
+        [SerializeField] protected Button btnCancel;
+        [SerializeField] protected Button btnConfirm;
 
         T thisT;
         //ÆË¾÷ÀÌ ¿­·È¾ú´ÂÁö
@@ -45,11 +47,12 @@ namespace AULib
             base.Awake();
 
             thisT = GetComponent<T>();
-            btnExit.onClick.AddListener(OnClickExit);            
+            btnExit?.onClick.AddListener(OnClickExit);
+            btnCancel?.onClick.AddListener(OnClickCancel);
+            btnConfirm?.onClick.AddListener(OnClickConfirm);            
         }
 
-       
-
+      
         protected override void Start()
         {
             base.Start();
@@ -124,6 +127,19 @@ namespace AULib
             if (CheckPopCloseCondition())
             {
                 Close(false);
+            }
+        }
+
+        protected virtual void OnClickCancel()
+        {
+            OnClickExit();
+        }
+
+        private void OnClickConfirm()
+        {
+            if (CheckPopCloseCondition())
+            {
+                Close(true);
             }
         }
 

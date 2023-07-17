@@ -45,7 +45,7 @@ namespace AULib
 
         private static PopupBase<T> GetPopupByPath<T>(string path, Transform parent) where T : IPopup
         {   
-            GameObject obj = AddressableManager.LoadAssetSync<GameObject>("prefab", path);
+            GameObject obj = AddressableManager.LoadAssetSync<GameObject>(path);
             if (obj == null)
             {
                 Debug.LogError($"Can not find object - path : {path}");

@@ -7,6 +7,7 @@ using UnityEngine.UI;
 namespace AULib
 {
 
+    public delegate void ToggleChangedDelegate(ToggleGroupEx.ToggleOption option);
     /// <summary>
     /// 토글 그룹 이벤트 처리 추가
     /// </summary>
@@ -18,7 +19,7 @@ namespace AULib
         {
             public string label;
             public int index;
-            public Toggle toggle;
+            public Toggle toggle;            
         }
              
         [SerializeField] private List<ToggleOption> _toggleOptions;
@@ -28,9 +29,12 @@ namespace AULib
         private ToggleOption _currentToggleOption;
         public ToggleGroup toggleGroup => _toggleGroup;
 
+        /// <summary>
+        /// 토글 아이템 보유 여부
+        /// </summary>
+        public bool IsToggleChildExist => _toggleOptions.Count > 0;
 
-
-        public event Action<int> OnChangedSelectToggle;
+        public event ToggleChangedDelegate OnChangedSelectToggle;
 
 
         protected override void Awake()
@@ -62,6 +66,7 @@ namespace AULib
         {
             _toggleGroup.RegisterToggle(toggle.toggle);
             _toggleOptions.Add(toggle);
+            toggle.toggle.group = _toggleGroup;
 
             SetToggleEvent();
         }
@@ -78,6 +83,25 @@ namespace AULib
             SetToggleEvent();
         }
 
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void RemoveAll(bool destroyInstance)
+        {
+            foreach (ToggleOption item in _toggleOptions)
+            {
+                //UnregisterToggle(item);
+                _toggleGroup.UnregisterToggle(item.toggle);
+                if (destroyInstance)
+                {
+                    Destroy(item.toggle.gameObject);
+                }
+            }
+            _toggleOptions.Clear();
+            SetToggleEvent();
+        }
+
         /// <summary>
         /// 토글 선택
         /// </summary>
@@ -85,29 +109,61 @@ namespace AULib
         public void SetSelectToggle(int index, bool isForceNotify = false)
         {
             var targetToggle = _toggleOptions.Find( tgl => tgl.index == index);
-            if (targetToggle.toggle.isOn && isForceNotify)
+            SetSelectToggle(targetToggle, isForceNotify);            
+        }
+
+        /// <summary>
+        /// 토글 선택 - Notify 없음
+        /// </summary>
+        /// <param name="index"></param>
+        public void SetSelectToggleWithoutNotfiy(int index)
+        {
+            var targetToggle = _toggleOptions.Find(tgl => tgl.index == index);
+            if (targetToggle == null) return;
+            targetToggle.toggle.SetIsOnWithoutNotify(true);
+            targetToggle.toggle.GetComponent<ToggleEx>()?.SetToggleViewOn(true);
+            SetCurrentToggleOption(targetToggle, false);
+        }
+
+        public void SetSelectFirstToggle(bool isForceNotify = false)
+        {
+            var targetToggle = _toggleOptions[0];
+            SetSelectToggle(targetToggle, isForceNotify);
+        }
+
+        public void SetSelectToggle(ToggleOption toggleOption, bool isForceNotify)
+        {
+            if (toggleOption == null) return;
+            if (toggleOption.toggle.isOn && isForceNotify)
             {
-                OnChangedSelectToggle?.Invoke(targetToggle.index);
+                OnChangedSelectToggle?.Invoke(toggleOption);
             }
             else
             {
-                targetToggle.toggle.isOn = true;
+                toggleOption.toggle.isOn = true;
             }
-            
         }
-
-
         /// <summary>
         /// 토글 선택 해제
         /// </summary>
         public void SetSelectToggleNull()
         {
-            foreach (ToggleOption item in _toggleOptions)
-            {
-                item.toggle.isOn = false;
-            }
+            _toggleGroup.SetAllTogglesOff();
+            //foreach (ToggleOption item in _toggleOptions)
+            //{
+            //    item.toggle.isOn = false;
+            //}
         }
 
+        /// <summary>
+        /// 토글 인덱스에 해당 하는 토글정보 리턴
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public ToggleOption GetToggleOptionWithIndex(int index)
+        {
+            return _toggleOptions.Find(info => info.index.Equals(index));
+        }
 
 
 
@@ -138,12 +194,32 @@ namespace AULib
                     return;
                 }
 
-                
-                _currentToggleOption = option;
-
-                OnChangedSelectToggle?.Invoke(_currentToggleOption.index);
-
+                SetCurrentToggleOption(option, true);
             }
+
+            if (_toggleGroup.allowSwitchOff)
+            {
+                if (!_toggleGroup.AnyTogglesOn())
+                {
+                    if (_currentToggleOption == option)
+                        //if (_currentToggleOption.Equals(option))
+                    {
+                        SetCurrentToggleOption(null, true);
+                    }
+                }
+            }
+            
+            
+        }
+
+        private void SetCurrentToggleOption(ToggleOption option, bool isNotify)
+        {
+            _currentToggleOption = option;
+            if (isNotify)
+            {
+                OnChangedSelectToggle?.Invoke(_currentToggleOption);
+            }
+            
         }
     }
 

@@ -9,13 +9,14 @@ using UnityEngine.Events;
 
 namespace AULib
 {
-    public partial class MessageBox : BaseBehaviour, IBlockerUsable, IBackable
+    public partial class MessageBox : BaseBehaviour, IBlockerUsable, IBackable, ICommonUIElement
     {
         [SerializeField] RectTransform bodyRect;
         [SerializeField] TMP_Text caption;
         [SerializeField] TMP_Text Message;
         
 
+        [SerializeField] Button buttonExit;
         [SerializeField] Button buttonOK;
         [SerializeField] Button buttonCancel;
         [SerializeField] Button buttonOther;
@@ -143,6 +144,7 @@ namespace AULib
 
         private void InitBtnAction()
         {
+            buttonExit.onClick.RemoveAllListeners();
             buttonOK.onClick.RemoveAllListeners();
             buttonCancel.onClick.RemoveAllListeners();
             buttonOther.onClick.RemoveAllListeners();
@@ -159,24 +161,30 @@ namespace AULib
 
         private void SetBtnAction()
         {
+            buttonExit.onClick.AddListener(HandleOnClickExit);
             buttonOK.onClick.AddListener(HandleOnClickOK);
             buttonCancel.onClick.AddListener(HandleOnClickCancel);
             buttonOther.onClick.AddListener(HandleOnClickOther);
         }
 
+       
+
         private void SetBtnActive()
         {
-
+            buttonOK.Select();
             buttonOther.gameObject.SetActive(false);
+            buttonExit.gameObject.SetActive(false);
+
             if (mbType == eMB_TYPE.MB_OK)
             {
-                buttonCancel.gameObject.SetActive(false);
+                buttonCancel.gameObject.SetActive(false);                
                 //RectTransform rt = buttonOK.GetComponent<RectTransform>();
                 //rt.anchoredPosition = new Vector2(0, rt.anchoredPosition.y);
             }
             else if (mbType == eMB_TYPE.MB_OK_CANCEL)
             {
                 buttonCancel.gameObject.SetActive(true);
+                buttonExit.gameObject.SetActive(true);
                 //RectTransform rt = buttonOK.GetComponent<RectTransform>();
                 //rt.anchoredPosition = new Vector2(-210, rt.anchoredPosition.y);
             }
@@ -184,6 +192,7 @@ namespace AULib
             {
                 buttonOther.gameObject.SetActive(true);
                 buttonCancel.gameObject.SetActive(true);
+                buttonExit.gameObject.SetActive(true);
             }
         }
 
@@ -226,7 +235,13 @@ namespace AULib
             }
         }
 
-     
+
+
+        private void HandleOnClickExit()
+        {
+            Hide();
+            _cancelCallback?.Invoke();
+        }
 
         private void HandleOnClickOK()
         {
@@ -267,7 +282,11 @@ namespace AULib
         #region Implements IBackable
         public void OnBackButtonInput()
         {
-            HandleOnClickCancel();
+            // One Button 일 경우 OK 처리.
+            if ( mbType == eMB_TYPE.MB_OK )
+                HandleOnClickOK();
+            else
+                HandleOnClickCancel();
         }
         #endregion Implements IBackable
     }

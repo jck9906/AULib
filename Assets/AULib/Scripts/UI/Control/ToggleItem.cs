@@ -12,7 +12,7 @@ public class ToggleItem : MonoBehaviour
     public Text textName;
 
 
-    public void SetToggleItem(string name, string bundle, string path)
+    public void SetToggleItem(string name, string path)
     {
         textName.text = name;
         //Background.sprite = AssetManager.i.LoadAsset<Sprite>(bundle, path);

@@ -13,7 +13,14 @@ MonoBehaviour:
   m_Name: AULibSetting
   m_EditorClassIdentifier: 
   GameControllerPath: Assets/Data/ALGameController.prefab
-  CommonUIControllerPath: Assets/AULib/Prefabs/CommonUIController.prefab
+  UIManagerPath: Assets/AULib/Prefabs/UIManager.prefab
+  LoadingSceneName: LoadingScene
   AtalasPath: Assets/Data/Art/UI/Atlas
+  AtlasListDataPath: Assets/Data/Art/UI/Atlas/SpriteAtlasData.asset
+  RawSpriteBuildPath: Assets/_RawData/Art/UI/Atlas_Build
+  RawSpriteBundlePath: Assets/_RawData/Art/UI/Atlas_Bundle
+  AtlasCreateBuildPath: Assets/Data/Art/UI/Atlas/Build
+  AtlasCreateBundlePath: Assets/Data/Art/UI/Atlas/Bundle
+  AtlasMaxSize: 2048
   UseAtlasOnEditor: 0
   WebURL: 

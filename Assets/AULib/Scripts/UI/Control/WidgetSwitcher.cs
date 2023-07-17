@@ -5,24 +5,31 @@ using UnityEngine;
 namespace AULib
 {
     // 
-    public class WidgetSwitcher : MonoBehaviour
+    public class WidgetSwitcher : BaseBehaviour
     {
         public int ActivateOnSetIndex;
-        private int _index;
 
-        [SerializeField] private GameObject[] _entities;
+        [SerializeField] private bool _autoOnAwake = true;
+        [SerializeField] private int _index;
+        [SerializeField] public GameObject[] _entities;
 
-        private void Awake()
+        public int Index { get => _index; }
+
+        protected override void Awake()
         {
-            SetOn( ActivateOnSetIndex );
+            base.Awake();
+
+            if(_autoOnAwake)
+                SetOn(ActivateOnSetIndex);
+
         }
 
-        public void SetOn( int index )
+        public GameObject SetOn( int index )
         {
             if ( _entities != null && _entities.Length <= index )
             {
                 Debug.Log( $"invalid index:{index}" );
-                return;
+                return null;
             }
 
             _index = Mathf.Clamp( index , 0 , _entities.Length - 1 );
@@ -30,20 +37,22 @@ namespace AULib
             for ( int i = 0 ; i < _entities.Length ; i++ )
             {
                 if ( i == index )
-                    _entities[ i ].SetActive( true );
+                    _entities[ i ]?.SetActive( true );
                 else
-                    _entities[ i ].SetActive( false );
+                    _entities[ i ]?.SetActive( false );
             }
+
+            return _entities[index];
         }
 
         public void SetNext()
         {
-            SetOn( _index++ );
+            SetOn( _index + 1 );
         }
 
         public void SetPrev()
         {
-            SetOn( _index-- );
+            SetOn( _index - 1 );
         }
     }
 }

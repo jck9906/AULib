@@ -140,8 +140,15 @@ namespace AULib
         // string¿ª enum value∑Œ casting
         public static T ParseEnum<T>( string strValue )
         {
-            object obj = Enum.Parse( typeof( T ) , strValue , true );
-            return ( T ) obj;
+            if (Enum.TryParse(typeof(T), strValue, true, out var result))
+            {
+                return (T)result;
+            }
+
+            Debug.LogError($"Requested value [<color=Yellow>{strValue}</color>] was not found");
+            return default(T);
+            //object obj = Enum.Parse( typeof( T ) , strValue , true );
+            //return ( T ) obj;
         }
 
         public static string CommaText( int num )

@@ -45,16 +45,9 @@ namespace AULib
             toggle.isOn = isOn;
         }
 
-
-
-
-
-
-
-
-        private void HandleToggleValueChanged(bool isOn)
+       
+        public void SetToggleViewOn(bool isOn)
         {
-            
             switch (toggleType)
             {
                 case eToggleType.ColorChange:
@@ -68,22 +61,25 @@ namespace AULib
                         {
                             item.color = colorDefault;
                         }
-                        
+
                     }
                     break;
 
                 case eToggleType.SwapGameObject:
-                    actvieToggle.SetActive(isOn);
-                    deActvieToggle.SetActive(!isOn);
+                    if (actvieToggle != null) actvieToggle?.SetActive(isOn);
+                    if (deActvieToggle != null) deActvieToggle.SetActive(!isOn);
+
                     break;
 
                 default:
                     break;
             }
+        }
 
-            
 
-            
+        private void HandleToggleValueChanged(bool isOn)
+        {
+            SetToggleViewOn(isOn);
         }
 
 

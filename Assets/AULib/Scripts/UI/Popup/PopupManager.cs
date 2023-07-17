@@ -8,18 +8,17 @@ namespace AULib
     /// <summary>
     /// ÆË¾÷ °ü¸®
     /// </summary>
-    public class PopupManager : MonoSingleton<PopupManager>
+    public class PopupManager : BaseBehaviour
     {
 
 
         [SerializeField] Transform parent;
+        [SerializeField] BackgroundBlock _backgroundBlock;
 
 
-        private Dictionary<string, IPopup> _popups;
-        public override void Init() 
-        {
-            _popups = new Dictionary<string, IPopup>();
-        }
+        private static Dictionary<string, IPopup> _popups = new();
+
+
 
 
         /// <summary>
@@ -83,14 +82,20 @@ namespace AULib
             popup.Open(() =>
             {
                 Debug.Log("Pop opened by manager");
+                _backgroundBlock.Show(popup);
                 onOpenAction?.Invoke((T)popup);
             }, (isConfirm) =>
             {
+                _backgroundBlock.Hide(popup);
                 onCloseAction?.Invoke((T)popup, isConfirm);
             });
 
             popup.GetRectTransform().SetAsLastSibling();
             return (T)popup;
         }
+
+
+
+
     }
 }

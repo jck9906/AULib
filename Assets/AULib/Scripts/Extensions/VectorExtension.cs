@@ -134,7 +134,16 @@ namespace AULib
             return new Vector2(v.x, v.y);
         }
 
-     
+        /// <summary>
+        /// Vetor3의 부피 변환
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <returns></returns>
+        public static float Volume(this Vector3 vector)
+        {
+            return vector.x * vector.y * vector.z;
+        }
+
 
 
         /// <summary>
@@ -202,6 +211,12 @@ namespace AULib
             if (!isNormalized) lineDirection.Normalize();
             var d = Vector3.Dot(point - pointOnLine, lineDirection);
             return pointOnLine + (lineDirection * d);
+        }
+
+        public static string TrimBrackets(this Vector3 vector)
+        {
+            char[] charsToTrim = { '(', ' ', ')' };
+            return vector.ToString().Trim(charsToTrim);
         }
     }
 }

@@ -2,10 +2,28 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Audio;
 
 namespace AULib
 {
 
+    public enum eMixerGroup
+    {
+        Master,
+        Interface,
+        SFX,
+        Prop,
+        Character,
+        Vehicle,
+        Ambience,
+        Instruments,
+        InstrumentSharp,
+        BGM,
+        Voice,
+        InterfaceBGM,
+
+        EndOfEnum
+    }
 
     public class SoundManager : MonoSingletonBase<SoundManager>
     {
@@ -18,30 +36,17 @@ namespace AULib
 
       
 
-        public List<AudioClip> EffectSounds;
+        public List<AudioClip> EffectSounds;    
         Dictionary<string, AudioClip> dicAudioClips2;
 
-        //public static SoundManager i
-        //{
-        //    get
-        //    {
-        //        if(instance == null)
-        //        {
-        //            // by evilkiki 2022.03
-        //            // DataManager.i.WarmUp();
-        //        }
-        //        return instance;
-        //    }
-
-        //}
-        //static SoundManager instance;
         public const int MAX_2D_AUDIO_SOURCE = 4;   // 2D 오디오 채널 갯수
-        public const int MAX_3D_AUDIO_SOURCE = 4;   // 3D 오디오 채널 갯수
+        public const int MAX_3D_AUDIO_SOURCE = 8;   // 3D 오디오 채널 갯수
         public const int MAX_2D_UNIQUE_AUDIO_SOURCE = 4;   // 특정 2D 오디오 채널 갯수
         public const int MAX_2D_TRACK_AUDIO_SOURCE = 4;   // 음원(Track) 오디오 채널 갯수
 
         private float _volumeSound = 1f;            // 사운드 볼륨 내부 변수 
-        private float _volumeBGM = 0.1f;            // BGM 볼륨 내부 변수 (뮤직 아일랜드 피아노 소리때문에 줄여둠)
+        private float _volumeBGM = 1f;            // BGM 볼륨 내부 변수 (뮤직 아일랜드 피아노 소리때문에 줄여둠)
+
 
 
         // 사운드 볼륨 설정
@@ -88,20 +93,17 @@ namespace AULib
             set
             {
                 _volumeBGM = value;
-                if (bgmAudioSource != null)
+                if (_bgmAudioSource != null)
                 {
-                    bgmAudioSource.volume = _volumeBGM;
+                    _bgmAudioSource.volume = _volumeBGM;
                 }
             }
         }
 
         // Audio Source
-        public AudioSource BGMAudioSource
-        {
-            get { return bgmAudioSource; }
-        }
+        
 
-        AudioSource bgmAudioSource;                     // BGM 전용 Audio Source
+        
         AudioSource[] audioSourcePool;                  // 일반 2D Audio Source
         AudioSource[] audio3DSourcePool;                // 3D Audio Source
         
@@ -114,7 +116,29 @@ namespace AULib
 
         private GameObject sourcePoolGameObject;        // 2D Audio Source Pool Object
 
+
+
+
+        #region 개선
+        [SerializeField] private AudioMixer _mixer;
+
+        // [SerializeField] private ListAudioSource _audioSource3DList;
+
+
+
+        [SerializeField] private AudioSource[] _uiAudioSources;
+        [SerializeField] private AudioSource _bgmAudioSource;
         
+
+
+
+        private Dictionary<eMixerGroup , AudioMixerGroup> _audioMixerGroupMap = new();
+
+        public AudioMixer Mixer => _mixer;
+
+        #endregion
+
+
 
         // 초기화
         public override void Init()
@@ -123,22 +147,30 @@ namespace AULib
             {
                 return;
             }
+
+            InitAudioMixerGroups();
+
             // 2D Audio Source Pool Object
             sourcePoolGameObject = new GameObject("AudioSourcePool");
             sourcePoolGameObject.transform.SetParent(transform);
             sourcePoolGameObject.transform.localPosition = Vector3.zero;
 
-
             // BGM
-            bgmAudioSource = sourcePoolGameObject.AddComponent<AudioSource>();
-            bgmAudioSource.spatialBlend = 0;    // 2D Sound로 설정
+            if (_bgmAudioSource == null)
+            {
+                _bgmAudioSource = sourcePoolGameObject.AddComponent<AudioSource>();
+                _bgmAudioSource.spatialBlend = 0;    // 2D Sound로 설정
+                _bgmAudioSource.outputAudioMixerGroup = GetAudioMixerGroup( eMixerGroup.BGM );
+            }
+            
 
             // 2D Audio Source Pool
             audioSourcePool = new AudioSource[MAX_2D_AUDIO_SOURCE];
             for (int i = 0; i < audioSourcePool.Length; i++)
-            {           
-                audioSourcePool[i] = sourcePoolGameObject.AddComponent<AudioSource>();
-                audioSourcePool[i].spatialBlend = 0;    // 2D Sound로 설정
+            {
+                audioSourcePool[ i ] = sourcePoolGameObject.AddComponent<AudioSource>();
+                audioSourcePool[ i ].spatialBlend = 0;    // 2D Sound로 설정
+                audioSourcePool[ i ].outputAudioMixerGroup = GetAudioMixerGroup( eMixerGroup.Interface );
             }
 
             
@@ -146,28 +178,29 @@ namespace AULib
             audioSourceUnique = new AudioSource[MAX_2D_UNIQUE_AUDIO_SOURCE];
             for (int i = 0; i < audioSourcePool.Length; i++)
             {
-                audioSourceUnique[i] = sourcePoolGameObject.AddComponent<AudioSource>();
-                audioSourceUnique[i].spatialBlend = 0;    // 2D Sound로 설정
+                audioSourceUnique[ i ] = sourcePoolGameObject.AddComponent<AudioSource>();
+                audioSourceUnique[ i ].spatialBlend = 0;    // 2D Sound로 설정
+                audioSourceUnique[ i ].outputAudioMixerGroup = GetAudioMixerGroup( eMixerGroup.Interface );
             }
 
-
+            
             // 3D Audio Source Pool
             audio3DSourcePool = new AudioSource[MAX_3D_AUDIO_SOURCE];
             obj3DSourcePool = new GameObject[MAX_3D_AUDIO_SOURCE];
             for (int i = 0; i < obj3DSourcePool.Length; i++)
             {
-                obj3DSourcePool[i] = new GameObject();
-                obj3DSourcePool[i].transform.SetParent(transform);
-                obj3DSourcePool[i].transform.position = Vector3.zero;
+                obj3DSourcePool[ i ] = new GameObject();
+                obj3DSourcePool[ i ].transform.SetParent( transform );
+                obj3DSourcePool[ i ].transform.position = Vector3.zero;
 
-                audio3DSourcePool[i] = obj3DSourcePool[i].AddComponent<AudioSource>();
+                audio3DSourcePool[ i ] = obj3DSourcePool[ i ].AddComponent<AudioSource>();
 
                 // 3D Sound Setting
-                audio3DSourcePool[i].spatialBlend = 1;
-                audio3DSourcePool[i].dopplerLevel = 0;
-                audio3DSourcePool[i].rolloffMode = AudioRolloffMode.Linear;
-                audio3DSourcePool[i].maxDistance = 50;
-
+                audio3DSourcePool[ i ].spatialBlend = 1;
+                audio3DSourcePool[ i ].dopplerLevel = 0;
+                audio3DSourcePool[ i ].rolloffMode = AudioRolloffMode.Linear;
+                audio3DSourcePool[ i ].maxDistance = 20;
+                audio3DSourcePool[ i ].outputAudioMixerGroup = GetAudioMixerGroup( eMixerGroup.SFX );
             }
 
             // 3D Audio Loop Sound Pool
@@ -185,6 +218,48 @@ namespace AULib
                 dicAudioClips2.Add(item.name, item);
             }
         }
+
+        private void InitAudioMixerGroups()
+        {
+            if( _mixer == null )
+            {
+                Debug.Log( "SoundManager::InitAudioMixerGroups - mixer is null" );
+                return;
+            }
+
+            AudioMixerGroup[] groups = _mixer.FindMatchingGroups( "Master" );
+
+            foreach ( var mixerGroup in groups )
+            {
+                _audioMixerGroupMap.Add( StringUtil.ParseEnum<eMixerGroup>( mixerGroup.name ) , mixerGroup );
+                Debug.Log( $"Add MixerGroup : {mixerGroup.name}" );
+            }
+
+            Debug.Log( $"Add MixerGroup Length : {groups.Length}" );
+
+
+        }
+
+
+        public AudioMixerGroup GetAudioMixerGroup( eMixerGroup mixerGroup ) => mixerGroup switch
+        {
+            eMixerGroup.Master      => _audioMixerGroupMap[ eMixerGroup.Master      ],
+            eMixerGroup.Interface   => _audioMixerGroupMap[ eMixerGroup.Interface   ],
+            eMixerGroup.SFX         => _audioMixerGroupMap[ eMixerGroup.SFX         ],
+            eMixerGroup.Prop        => _audioMixerGroupMap[ eMixerGroup.Prop        ],
+            eMixerGroup.Character   => _audioMixerGroupMap[ eMixerGroup.Character   ],
+            eMixerGroup.Vehicle     => _audioMixerGroupMap[ eMixerGroup.Vehicle     ],
+            eMixerGroup.Ambience    => _audioMixerGroupMap[ eMixerGroup.Ambience    ],
+            eMixerGroup.Instruments => _audioMixerGroupMap[ eMixerGroup.Instruments ],
+            eMixerGroup.InstrumentSharp => _audioMixerGroupMap[eMixerGroup.InstrumentSharp],
+            eMixerGroup.BGM         => _audioMixerGroupMap[ eMixerGroup.BGM         ],
+            eMixerGroup.Voice       => _audioMixerGroupMap[ eMixerGroup.Voice       ],
+            _ => null
+        };
+
+
+
+
 
         // 비어 있는 슬롯 구하기
         int GetEmptyAudioSource()
@@ -240,7 +315,7 @@ namespace AULib
                 return audioClip;
             }
 
-            audioClip = AddressableManager.LoadAssetSync<AudioClip>(strBundleName, string.Format("{0}.{1}", strClipName, fileExtension));
+            audioClip = AddressableManager.LoadAssetSync<AudioClip>(string.Format("{0}.{1}", strClipName, fileExtension));
 
             if (audioClip == null)
             {
@@ -262,17 +337,20 @@ namespace AULib
         // 일반 2D 오디오 클립 플레이
         public AudioSource PlayAudio(AudioClip clip, float Pitch = 1.0f, bool bLoop = false)
         {
-            if (clip == null) return null;
+            if ( clip == null )
+                return null;
 
             int AudioSourceIndex = GetEmptyAudioSource();
-            if (AudioSourceIndex < 0 || AudioSourceIndex >= audioSourcePool.Length) return null;
+            if ( AudioSourceIndex < 0 || AudioSourceIndex >= audioSourcePool.Length )
+                return null;
 
-            audioSourcePool[AudioSourceIndex].clip = clip;
-            audioSourcePool[AudioSourceIndex].volume = _volumeSound;
-            audioSourcePool[AudioSourceIndex].loop = bLoop;
-            audioSourcePool[AudioSourceIndex].pitch = Pitch;
-            audioSourcePool[AudioSourceIndex].Play();
-            return audioSourcePool[AudioSourceIndex];
+            audioSourcePool[ AudioSourceIndex ].clip = clip;
+            audioSourcePool[ AudioSourceIndex ].volume = _volumeSound;
+            audioSourcePool[ AudioSourceIndex ].loop = bLoop;
+            audioSourcePool[ AudioSourceIndex ].pitch = Pitch;
+            audioSourcePool[ AudioSourceIndex ].Play();
+
+            return audioSourcePool[ AudioSourceIndex ];
         }
 
 
@@ -298,12 +376,17 @@ namespace AULib
             if (clip == null) return null;
 
 
-            if (AudioSourceIndex < 0 || AudioSourceIndex >= audioSourceUnique.Length) return null;
-            if (audioSourceUnique[AudioSourceIndex].isPlaying == true) return audioSourceUnique[AudioSourceIndex];
-            audioSourceUnique[AudioSourceIndex].clip = clip;
-            audioSourceUnique[AudioSourceIndex].volume = _volumeSound;
-            audioSourceUnique[AudioSourceIndex].Play();
-            return audioSourceUnique[AudioSourceIndex];
+            if ( AudioSourceIndex < 0 || AudioSourceIndex >= audioSourceUnique.Length )
+                return null;
+
+            if ( audioSourceUnique[ AudioSourceIndex ].isPlaying == true )
+                return audioSourceUnique[ AudioSourceIndex ];
+
+            audioSourceUnique[ AudioSourceIndex ].clip = clip;
+            audioSourceUnique[ AudioSourceIndex ].volume = _volumeSound;
+            audioSourceUnique[ AudioSourceIndex ].Play();
+
+            return audioSourceUnique[ AudioSourceIndex ];
         }
 
 
@@ -346,14 +429,15 @@ namespace AULib
 
 
         // 3D 오디오 파일 플레이 (번들에서 읽어오기)
-        public GameObject PlayAudio3D(Vector3 vecPosition, string strBundleName, string strClipName, float Pitch = 1.0f, bool bLoop = false, eSoundType soundType = eSoundType.WAV)
+        // public GameObject PlayAudio3D(Vector3 vecPosition, string strBundleName, string strClipName, AudioMixerGroup audioMixerGroup, float Pitch = 1.0f, bool bLoop = false, eSoundType soundType = eSoundType.WAV)
+        public GameObject PlayAudio3D( Vector3 vecPosition , string strBundleName , string strClipName , eMixerGroup mixerGroup , float Pitch = 1.0f , bool bLoop = false , eSoundType soundType = eSoundType.WAV )
         {
-            AudioClip clip = GetAudioClip(strBundleName, strClipName, soundType);
-            return PlayAudio3D(vecPosition, clip, Pitch, bLoop);
+            return PlayAudio3D( vecPosition , GetAudioClip( strBundleName , strClipName , soundType ) , mixerGroup , Pitch , bLoop );
         }
 
         // 3D 오디오 클립 플레이
-        public GameObject PlayAudio3D(Vector3 vecPosition, AudioClip clip, float Pitch = 1.0f, bool bLoop = false, float maxDistance = 50.0f)
+        // public GameObject PlayAudio3D(Vector3 vecPosition, AudioClip clip, AudioMixerGroup audioMixerGroup, float Pitch = 1.0f, bool bLoop = false, float maxDistance = 20.0f)
+        public GameObject PlayAudio3D( Vector3 vecPosition , AudioClip clip , eMixerGroup mixerGroup = eMixerGroup.SFX , float Pitch = 1.0f , bool bLoop = false , float maxDistance = 20.0f )
         {
             if (clip == null) return null;
 
@@ -377,6 +461,7 @@ namespace AULib
             audioSource.loop = bLoop;
             audioSource.pitch = Pitch;
             audioSource.maxDistance = maxDistance;
+            audioSource.outputAudioMixerGroup = GetAudioMixerGroup( mixerGroup );
 
             audioSource.Play();
 
@@ -388,7 +473,6 @@ namespace AULib
                 audioSource.spatialBlend = 1;
                 audioSource.dopplerLevel = 0;
                 audioSource.rolloffMode = AudioRolloffMode.Linear;
-
 
                 audio3DLoopSourceList.Add(audioSource);
             }
@@ -441,6 +525,8 @@ namespace AULib
             audio3DLoopSourceList.Clear();
         }
 
+
+        #region For BGM
         //BGM 플레이 (from Bundle)
         public AudioSource PlayBGM(string strBundleName, string strClipName, bool bLoop = false, eSoundType soundType = eSoundType.OGG)
         {
@@ -451,21 +537,167 @@ namespace AULib
         //BGM 플레이 (from AudioClip)
         public AudioSource PlayBGM(AudioClip clip, bool bLoop = false)
         {
-            if (clip == null) return null;
-            bgmAudioSource.clip = clip;
-            bgmAudioSource.volume = _volumeBGM;
-            bgmAudioSource.loop = bLoop;
-            bgmAudioSource.Play();
-            return bgmAudioSource;
+            if ( clip == null )
+                return null;
+            _bgmAudioSource.clip   = clip;
+            _bgmAudioSource.volume = _volumeBGM;
+            _bgmAudioSource.loop   = bLoop;
+            _bgmAudioSource.Play();
+
+            return _bgmAudioSource;
         }
 
         public void StopBGM()
         {
-            if (bgmAudioSource && bgmAudioSource.clip != null)
-                bgmAudioSource?.Stop();
+            if (_bgmAudioSource && _bgmAudioSource.clip != null)
+                _bgmAudioSource?.Stop();
+        }
+        #endregion // For BGM
+
+
+
+
+
+
+        #region Volume Setting
+
+        // 런타임 중에 바뀔 수 있을까?
+        float _masterVolume;
+        float _interfaceVolume;
+        float _sfxVolume;
+        float _bgmVolume;
+        float _voiceVolume;
+        float _propVolume;
+        float _characterVolume;
+        float _vehicleVolume;
+        float _ambienceVolume;
+        float _instrumentsVolume;
+
+        bool _muteMaster;
+        bool _muteInterface;
+        bool _muteSfx;
+        bool _muteBgm;
+        bool _muteVoice;
+
+        private string MixerGroupToMixerKeyName( eMixerGroup mixerGroup ) => mixerGroup switch
+        {
+            eMixerGroup.Master      => "MasterVolume",
+            eMixerGroup.Interface   => "InterfaceVolume",
+            eMixerGroup.SFX         => "SFXVolume",
+            eMixerGroup.Prop        => "PropVolume",
+            eMixerGroup.Character   => "CharacterVolume",
+            eMixerGroup.Vehicle     => "VehicleVolume",
+            eMixerGroup.Ambience    => "AmbienceVolume",
+            eMixerGroup.Instruments => "InstrumentVolume",
+            eMixerGroup.InstrumentSharp => "InstrumentVolume",
+            eMixerGroup.BGM         => "BGMVolume",
+            eMixerGroup.Voice       => "VoiceVolume",
+            _ => "None"
+        };
+
+        //private bool SetMute( eMixerGroup mixerGroup , bool mute ) => mixerGroup switch
+        //{
+        //    eMixerGroup.Master      => _muteMaster = mute ,
+        //    eMixerGroup.Interface   => _muteInterface = mute ,
+        //    eMixerGroup.SFX         => _muteSfx = mute ,
+        //    eMixerGroup.BGM         => _muteBgm = mute ,
+        //    eMixerGroup.Voice       => _muteVoice = mute ,
+        //    _ => false
+        //};
+
+        public bool SetVolume( eMixerGroup mixerGroup , float volume , bool mute = false )      // -80 ~ 0
+        {
+            return _mixer.SetFloat( MixerGroupToMixerKeyName( mixerGroup ) , mute ? 0 : volume );
         }
 
-     
-    }
+        public void SetMute( bool mute )
+        {
+            SetVolume( eMixerGroup.Master    , _masterVolume    , mute );
+            SetVolume( eMixerGroup.Interface , _interfaceVolume , mute );
+            SetVolume( eMixerGroup.SFX       , _sfxVolume       , mute );
+            SetVolume( eMixerGroup.BGM       , _bgmVolume       , mute );
+            SetVolume( eMixerGroup.Voice     , _voiceVolume     , mute );
+        }
 
+        public void SetMute( eMixerGroup mixerGroup , bool mute )
+        {
+            SetVolume( mixerGroup , GetVolume( mixerGroup ) , mute );
+        }
+
+        public float GetVolume( eMixerGroup mixerGroup ) => mixerGroup switch
+        {
+            eMixerGroup.Master      => _masterVolume ,
+            eMixerGroup.Interface   => _interfaceVolume ,
+            eMixerGroup.SFX         => _sfxVolume ,
+            eMixerGroup.BGM         => _bgmVolume ,
+            eMixerGroup.Voice       => _voiceVolume ,
+            _ => 0.0f
+        };
+
+        #endregion
+
+
+        #region Play Soud - OneShot 만 사용함.
+        //public enum  eUISoundEffect
+        //{
+        //    Confirm,
+        //    Cancel,
+        //    Click,
+
+        //    EndOfEnum
+        //}
+
+        //public AudioClip GetUISoundEffectClip( eUISoundEffect effectType )
+        //{
+        //    return null;
+        //}
+
+        //public void PlayUI( eUISoundEffect effectType )
+        //{
+        //    PlayUIOneShot( GetUISoundEffectClip( effectType ) );
+        //}
+
+        //public void PlayUI( string clipName , bool loop = false )
+        //{
+        //    if ( !loop )
+        //        PlayUIOneShot( null );
+        //    else
+        //        PlayUILoop( null );
+        //}
+
+        //public void PlayUILoop( AudioClip clip )
+        //{
+        //    if ( clip == null )
+        //        return;
+        //}
+
+        //public void StopUI()
+        //{
+        //}
+
+        //public void PlayUIOneShot( AudioClip clip )
+        //{
+        //    if ( clip == null )
+        //        return;
+        //}
+
+
+
+
+        //public void PlayFXSound( AudioClip clip , Vector3 pos )
+        //{
+        //}
+
+        //public void PlayBGMSound()
+        //{
+        //    // loop
+        //}
+
+        //public void PlayInterfaceSound()
+        //{
+        //    // oneshot
+        //}
+
+        #endregion
+    }
 }

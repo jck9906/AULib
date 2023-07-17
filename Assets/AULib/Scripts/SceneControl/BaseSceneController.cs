@@ -16,6 +16,7 @@ namespace AULib
     public abstract class BaseSceneController : BaseBehaviour, IBackable
     {
         [SerializeField] protected SceneLoadListener[] _sceneLoadListeners;
+        [SerializeField] protected AssetPreLoader _assetPreLoader;
 
         //초기화 완료 여부
         protected bool _isDone = false;
@@ -35,6 +36,12 @@ namespace AULib
         protected override void Awake()
         {
             base.Awake();
+
+            if (_assetPreLoader == null) 
+            {
+                _assetPreLoader = GetComponent<AssetPreLoader>();
+            }
+                
             //1. 씬 로딩 완료
             OnSceneLoaded();
         }
@@ -48,20 +55,18 @@ namespace AULib
         /// <returns></returns>
         public async UniTaskVoid InitializeSceneAsync()
         {
-            //2. 씬 초기화 시작
-            
-            //Dummy code
+            _loadingTipMessage = "애셋 로드 중...";
+            _progress += 0.2f;
+            //2. 씬 초기화 시작            
+            await _assetPreLoader.LoadAsync();
+            //Dummy code            
             _loadingTipMessage = "Scene is initializing #1...";
             _progress += 0.2f;
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
-            
             _loadingTipMessage = "Scene is initializing #2...";
             _progress += 0.2f;
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
             _loadingTipMessage = "Scene is initializing #3...";
-            _progress += 0.2f;
-            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
-            _loadingTipMessage = "Scene is initializing #4...";
             _progress += 0.2f;
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
            
@@ -105,6 +110,8 @@ namespace AULib
 
 #endif
             LoadingSceneController.SceneLoadCallback(this);
+            //UIManager.i.Common.HideAll();
+            UIManager.i.Common.HideAll();
         }
 
 

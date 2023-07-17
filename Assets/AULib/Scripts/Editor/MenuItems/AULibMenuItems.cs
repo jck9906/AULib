@@ -44,5 +44,13 @@ namespace AULib.Editor
         {
             AssetDatabase.OpenAsset(AssetDatabase.LoadAssetAtPath<GameObject>(FONT_MANAGER_PREFAB_PATH));
         }
+
+
+        [MenuItem("AULib/Build sprite atlas", false, 4)]
+        public static void BuildSpriteAtlas()
+        {
+            SpriteAtlasBuilder.BuildSpriteAtlas();
+        }
+
     }
 }

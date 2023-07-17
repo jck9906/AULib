@@ -47,3 +47,14 @@ MonoBehaviour:
   EffectSounds:
   - {fileID: 8300000, guid: f4ab5320cf470c54b981cc5e8652a57c, type: 3}
   - {fileID: 8300000, guid: 67c69fd250c8b6144a2365089190cddf, type: 3}
+  - {fileID: 8300000, guid: 0769659f3602afa428ec89ed329172ff, type: 3}
+  - {fileID: 8300000, guid: 52db8a67c3ab3294ebedcbbdef5db980, type: 3}
+  - {fileID: 8300000, guid: e9677c5b52f50934396b6d140bf9605b, type: 3}
+  - {fileID: 8300000, guid: 9bb4ccb1ba942fd4cbfeb747a06e5b34, type: 3}
+  - {fileID: 8300000, guid: 6914cbd0f0788a545b4946d227293326, type: 3}
+  - {fileID: 8300000, guid: 46e9a7ee4cedec54ab4a7e1f389a459c, type: 3}
+  - {fileID: 8300000, guid: 5392df52d98296e4d94e9f29bba24583, type: 3}
+  - {fileID: 8300000, guid: 612812162c7911b498b47f981f8873d2, type: 3}
+  _mixer: {fileID: 0}
+  _uiAudioSources: []
+  _bgmAudioSource: {fileID: 0}

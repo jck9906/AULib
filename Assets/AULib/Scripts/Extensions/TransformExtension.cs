@@ -35,5 +35,24 @@ namespace AULib
             transform.localRotation = Quaternion.identity;
             transform.localScale = Vector3.one;
         }
+
+        /// <summary>
+        /// 오브젝트 이름으로 트랜스폼 찾기
+        /// </summary>
+        /// <param name="transform"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static Transform GetTransformByName(this Transform transform, string name, bool includeInactive = false)
+        {
+            Transform[] trs = transform.GetComponentsInChildren<Transform>(includeInactive);
+            foreach (var tr in trs)
+            {
+                if (tr.name == name)
+                    return tr;
+            }
+            return null;
+        }
+
+
     }
 }
